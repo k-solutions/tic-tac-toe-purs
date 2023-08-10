@@ -1,0 +1,39 @@
+.list { 
+  padding-left: 30px;         
+}   
+
+boardRow { 
+  display: table;             
+}        
+
+.square { 
+  background: #fff;
+  border: 1px solid #999;         
+  float: left;         
+  font-size: 24px;         
+  font-weight: bold;         
+  line-height: 34px;         
+  height: 34px;
+  margin: 0px -1px;
+  padding: 0;
+  text-align: center;
+  width: 34px;
+} 
+
+.square:focus { 
+    outline: none;
+    background: #ddd;                        
+} 
+
+.game { 
+  display: flex;
+  flex-direction: row;
+  font: 14px "Century Gothic"; 
+  font-family: "Futura", sans-serif;         
+}   
+
+.gameInfo { margin-left: 20px; }   
+
+
+
+/*# sourceMappingURL=/styles.8986bff4.css.map */
