@@ -5,26 +5,19 @@ module Components.Board
 
 import Prelude
 
-import Components.Square (MoveCount(..), GameState(..), Message(..), Player(..), StateElem, Position, emptyStateElem, mkPosition, mkSquareComponent, sizeArray)
-import Data.Array ((..))
-import Data.Array.NonEmpty (NonEmptyArray)
+import Types (MoveCount(..), GameState, Message(..), Player(..), StateElem, Position, emptyStateElem, mkPosition, sizeArray)
 import Data.Array.NonEmpty as NEArray
-import Data.Maybe (Maybe(..))
-import Data.Tuple (Tuple(..))
+import Data.Maybe (Maybe(..), maybe)
+import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Effect.Class (class MonadEffect)
-import Effect.Console (log)
 import Halogen as H
-import Halogen.Aff as HAff
-import Halogen.HTML (element)
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.Hooks as Hooks
 import Type.Proxy (Proxy(..))
 import Web.HTML.Common (ClassName(..))
-
---- Data  Types ---
 
 --- Helpers ---
 _square :: Proxy "square"
@@ -55,12 +48,39 @@ updateState se st =
 
 --- Container Public API ---
 
+-- | TODO: set game state a parameter and use them to get required data
+mkSquareComponent
+  :: forall query i m
+   . MonadEffect m
+  => Position
+  -> Tuple GameState _
+  -> H.Component query i Message m
+mkSquareComponent pos (_ /\ gameStateIdx) = Hooks.component \rec _ -> Hooks.do
+  cellState /\ cellStateIdx <- Hooks.useState emptyStateElem
+  let player = maybe "" show $ cellState pos
+  Hooks.pure $
+    HH.button
+      [ HP.title player
+      , HP.class_ $ ClassName "square"
+      , HP.disabled $ isDisabled player
+      , HE.onClick \_ -> do
+          when (not isDisabled player) do
+            gameState <- Hooks.get gameStateIdx
+            newSt <- Hooks.modify cellStateIdx <<< const <<< const $ Just gameState.nextTurn -- | nextPlayer 
+            Hooks.raise rec.outputToken $ IsClicked pos newSt
+      ]
+      [ HH.text player ]
+  where
+  isDisabled p
+    | p == "" = false
+    | otherwise = true
+
 mkBoardComponent
   :: forall q i o m
    . MonadEffect m
   => Tuple GameState _
   -> H.Component q i o m
-mkBoardComponent gameSt@(gameState /\ gameStateIdx) = Hooks.component $ \_ _ -> Hooks.do
+mkBoardComponent gameSt@(_gameState /\ gameStateIdx) = Hooks.component $ \_ _ -> Hooks.do
   let
     handleCellWithPosition row = handleCell <<< mkPosition row
     mkSquareSlot row colIdx = HH.slot _square (mkPosition row colIdx) (mkSquareComponent (mkPosition row colIdx) gameSt) unit $ handleCellWithPosition row colIdx
@@ -77,4 +97,3 @@ mkBoardComponent gameSt@(gameState /\ gameStateIdx) = Hooks.component $ \_ _ -> 
     handleCell _ _ = pure unit
 
   Hooks.pure $ HH.div_ $ NEArray.toArray $ map mkRow sizeArray
---  where

@@ -1,6 +1,5 @@
-module Components.Square
-  ( mkSquareComponent
-  , mkPosition
+module Types  
+  ( mkPosition
   , emptySquare
   , emptyStateElem
   , sizeArray
@@ -17,21 +16,10 @@ import Prelude
 
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NEArray
--- import Data.Bounded (Ordering(..))
 import Data.Eq.Generic (genericEq)
 import Data.Generic.Rep (class Generic)
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..))
 import Data.Show.Generic (genericShow)
-import Data.Tuple (Tuple)
-import Data.Tuple.Nested ((/\))
-import Effect.Class (class MonadEffect)
--- import Effect.Console (log)
-import Halogen as H
-import Halogen.HTML as HH
-import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties as HP
-import Halogen.Hooks as Hooks
-import Web.HTML.Common (ClassName(..))
 
 --- Data  Types ---
 
@@ -85,7 +73,7 @@ emptySquare = Nothing
 emptyStateElem :: StateElem
 emptyStateElem _ = Nothing
 
---- Square Component creation ---:b1:
+--- Square Component creation ---
 sizeArray :: NonEmptyArray Int
 sizeArray = 0 NEArray... 2
 
@@ -97,31 +85,4 @@ mkPosition r i
       where
       frsCol = NEArray.head sizeArray
       frsRow = NEArray.head sizeArray
-
--- | TDO: set game state a parameter and use them to get required data
-mkSquareComponent
-  :: forall query i m
-   . MonadEffect m
-  => Position
-  -> Tuple GameState _
-  -> H.Component query i Message m
-mkSquareComponent pos (_ /\ gameStateIdx) = Hooks.component \rec _ -> Hooks.do
-  cellState /\ cellStateIdx <- Hooks.useState emptyStateElem
-  let player = maybe "" show $ cellState pos
-  Hooks.pure $
-    HH.button
-      [ HP.title player
-      , HP.class_ $ ClassName "square"
-      , HP.disabled $ isDisabled player
-      , HE.onClick \_ -> do
-          when (not isDisabled player) do
-            gameState <- Hooks.get gameStateIdx
-            newSt <- Hooks.modify cellStateIdx <<< const <<< const $ Just gameState.nextTurn -- | nextPlayer 
-            Hooks.raise rec.outputToken $ IsClicked pos newSt
-      ]
-      [ HH.text player ]
-  where
-  isDisabled p
-    | p == "" = false
-    | otherwise = true
 

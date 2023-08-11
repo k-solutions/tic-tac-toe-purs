@@ -6,25 +6,22 @@ module Components.Game
 import Prelude
 
 import Components.Board (nextPlayer, mkBoardComponent)
-import Components.Square (GameState (..), MoveCount (..), Message(..), Player(..), Position(..), Square, StateElem(..), emptyStateElem, mkPosition)
+import Types (GameState, MoveCount(..), Message(..), Player(..), Square, StateElem, emptyStateElem, mkPosition)
 import Control.Alt ((<|>))
 import Data.Array as Array
 import Data.Array.NonEmpty as NEArray
 import Data.Foldable (or)
 import Data.Maybe (Maybe(..))
--- import Data.Semigroup.Foldable (foldr1)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Data.Unfoldable1 (unfoldr1)
 import Effect.Class (class MonadEffect)
 import Halogen as H
 import Halogen.HTML as HH
--- import Halogen.HTML.Core (HTML(..))
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.Hooks as Hooks
 import Type.Proxy (Proxy(..))
--- import Web.DOM (Comment)
 import Web.HTML.Common (ClassName(..))
 
 --- Public API ---
@@ -49,7 +46,7 @@ mkGameComponent
   :: forall q i o m
    . MonadEffect m
   => H.Component q i o m
-mkGameComponent = Hooks.component $ \rec _ -> Hooks.do
+mkGameComponent = Hooks.component $ \_rec _ -> Hooks.do
   gameSt@(gameState /\ gameStateIdx) <- Hooks.useState initState
   let
     moves = Array.fromFoldable $ NEArray.mapWithIndex (\ix _ -> setSlot ix) gameState.history
@@ -96,7 +93,7 @@ mkGameComponent = Hooks.component $ \rec _ -> Hooks.do
   initState =
     { history: NEArray.singleton emptyStateElem
     , currentMove: MkMoveCount 0
-    , nextTurn: X
+    , nextTurn: O
     }
 
 --- Helpers --- 
