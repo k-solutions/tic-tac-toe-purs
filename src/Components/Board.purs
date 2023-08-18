@@ -1,50 +1,28 @@
 module Components.Board
   ( mkBoardComponent
-  , nextPlayer
   ) where
 
 import Prelude
 
-import Types (MoveCount(..), GameState, Message(..), Player(..), StateElem, Position, emptyStateElem, mkPosition, sizeArray)
+import Data.Array as Array
+import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NEArray
+import Data.Array.NonEmpty.Internal (NonEmptyArray(..))
 import Data.Maybe (Maybe(..), maybe)
-import Data.Tuple (Tuple)
+import Data.NonEmpty (NonEmpty(..))
+import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Effect.Class (class MonadEffect)
+import Effect.Class.Console (log)
 import Halogen as H
+import Halogen.HTML (i, samp)
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.Hooks as Hooks
 import Type.Proxy (Proxy(..))
+import Types (BoardState(..), Message(..), Player(..), Position, StateElem, Square, boardSize, emptyStateElem, mkPosition, nextMoveCount, nextPlayer, sizeArray)
 import Web.HTML.Common (ClassName(..))
-
---- Helpers ---
-_square :: Proxy "square"
-_square = Proxy
-
-nextPlayer :: Player -> Player
-nextPlayer X = O
-nextPlayer _ = X
-
-updateState
-  :: StateElem
-  -> GameState
-  -> GameState
-updateState se st =
-  { history: se NEArray.: st.history
-  , currentMove: nextMove st.currentMove
-  , nextTurn: nextPlayer st.nextTurn
-  }
-  where
-  nextMove (MkMoveCount x) = MkMoveCount $ x + 1
-
---mkCreateBoardPositions :: Array (Array Position)
---mkCreateBoardPositions 
---  = map (\r -> map (mkPosition r) sizeArray) rows
---  where
---    rows = map MkRow sizeArray  
---
 
 --- Container Public API ---
 
@@ -53,9 +31,9 @@ mkSquareComponent
   :: forall query i m
    . MonadEffect m
   => Position
-  -> Tuple GameState _
+  -> BoardState 
   -> H.Component query i Message m
-mkSquareComponent pos (_ /\ gameStateIdx) = Hooks.component \rec _ -> Hooks.do
+mkSquareComponent pos parentState = Hooks.component \rec _ -> Hooks.do
   cellState /\ cellStateIdx <- Hooks.useState emptyStateElem
   let player = maybe "" show $ cellState pos
   Hooks.pure $
@@ -65,25 +43,57 @@ mkSquareComponent pos (_ /\ gameStateIdx) = Hooks.component \rec _ -> Hooks.do
       , HP.disabled $ isDisabled player
       , HE.onClick \_ -> do
           when (not isDisabled player) do
-            gameState <- Hooks.get gameStateIdx
-            newSt <- Hooks.modify cellStateIdx <<< const <<< const $ Just gameState.nextTurn -- | nextPlayer 
+            newSt <- Hooks.modify cellStateIdx <<< const $ squareFn parentState.nextTurn -- | nextPlayer 
             Hooks.raise rec.outputToken $ IsClicked pos newSt
       ]
       [ HH.text player ]
   where
+  squareFn :: Player -> Position -> Square
+  squareFn player sqPos 
+    | sqPos == pos = Just player
+    | otherwise = Nothing   
+
   isDisabled p
     | p == "" = false
     | otherwise = true
 
 mkBoardComponent
-  :: forall q i o m
+  :: forall q i m
    . MonadEffect m
-  => Tuple GameState _
-  -> H.Component q i o m
-mkBoardComponent gameSt@(_gameState /\ gameStateIdx) = Hooks.component $ \_ _ -> Hooks.do
+  => BoardState
+  -> H.Component q i Message m
+mkBoardComponent gameState = Hooks.component $ \rec _ -> Hooks.do
+  boardState /\ boardStateIdx <- Hooks.useState gameState
   let
-    handleCellWithPosition row = handleCell <<< mkPosition row
-    mkSquareSlot row colIdx = HH.slot _square (mkPosition row colIdx) (mkSquareComponent (mkPosition row colIdx) gameSt) unit $ handleCellWithPosition row colIdx
+    allAvailableMoves :: Array Player
+    allAvailableMoves = Array.concatMap go 
+                      $ NEArray.toArray mkWinningBoardPositions
+      where
+        getNew i (Tuple c (Just nextI)) 
+          | i == nextI = Tuple (c + 1) $ Just i
+          | otherwise =  Tuple c Nothing 
+        getNew i (Tuple _ Nothing) = Tuple 1 $ Just i
+
+        getWinnigMoves :: Array Player -> Square
+        getWinnigMoves = extractIfFull <<< Array.foldr getNew (Tuple 0 Nothing)
+          where
+           extractIfFull (Tuple c s) 
+            | c == boardSize = s
+            | otherwise = Nothing
+       
+        go :: NonEmptyArray Position -> Array Player
+        go wps = NEArray.mapMaybe (\fn -> getWinnigMoves $ NEArray.mapMaybe fn wps) boardState.history 
+
+    hasWinner :: Square
+    hasWinner 
+      | NEArray.length boardState.history <= boardSize = Nothing
+--      |  =  
+      | otherwise = Nothing
+    
+    mkSquareSlot row colIdx 
+      = HH.slot _square (mkPosition row colIdx) (mkSquareComponent (mkPosition row colIdx) boardState) unit 
+      <<< handleCell <<< mkPosition row $ colIdx
+
     mkRow idx = do
       HH.div
         [ HP.class_ $ ClassName "boardRow"
@@ -93,7 +103,35 @@ mkBoardComponent gameSt@(_gameState /\ gameStateIdx) = Hooks.component $ \_ _ ->
 
     handleCell pos (IsClicked move se) = do
       when (pos == move) do
-        Hooks.modify_ gameStateIdx $ updateState se -- | update state when we have a cell match with next turn 
-    handleCell _ _ = pure unit
+        newSt <- Hooks.modify boardStateIdx $ updateState se        -- | update state when we have a cell match with next turn
+        void <<< log $ "We updated Board State with " -- <> show newSt                                                                
+      Hooks.raise rec.outputToken $ HasWinner boardState hasWinner                                                 
+    handleCell pos m = do
+      void <<< log $ "We could not capture proper message for cell change " <> show pos
+      pure unit
 
   Hooks.pure $ HH.div_ $ NEArray.toArray $ map mkRow sizeArray
+  where
+  _square :: Proxy "square"
+  _square = Proxy
+  
+--- Helpers ---
+
+updateState
+  :: StateElem
+  -> BoardState
+  -> BoardState
+updateState se st =
+  { history: se NEArray.: st.history
+  , nextTurn: nextPlayer st.nextTurn
+  }
+
+mkWinningBoardPositions :: NonEmptyArray (NonEmptyArray Position)
+mkWinningBoardPositions 
+  =  map (go sizeArray) monoArr
+  <> map (\mArr -> go mArr sizeArray) monoArr
+  <> NonEmptyArray [ go sizeArray sizeArray
+                   , go sizeArray $ NEArray.reverse sizeArray ] 
+  where
+    go = NEArray.zipWith mkPosition
+    monoArr = map (NEArray.replicate boardSize) sizeArray 

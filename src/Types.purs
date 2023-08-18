@@ -2,14 +2,22 @@ module Types
   ( mkPosition
   , emptySquare
   , emptyStateElem
+  , boardSize
   , sizeArray
+  , rewindMoveCount
+  , unMoveCount
+  , initMoveCount
+  , nextMoveCount
+  , reverseMoveCount
+  , nextPlayer
+  , initPlayer
+  , BoardState(..)
   , Player(..)
   , Square
   , Message(..)
   , StateElem
-  , Position
-  , GameState(..)
-  , MoveCount(..)
+  , Position(..) 
+  , MoveCount
   ) where
 
 import Prelude
@@ -42,6 +50,11 @@ newtype Position = MkPosition
   , col :: Int
   }
 
+derive instance Generic Position _
+
+instance Show Position where
+  show = genericShow
+
 instance Eq Position where
   eq (MkPosition { row: r1, col: c1 }) (MkPosition { row: r2, col: c2 }) = r1 == r2 && c1 == c2 
 
@@ -54,18 +67,44 @@ instance Ord Position where
 
 newtype MoveCount = MkMoveCount Int
 
-type GameState =
+-- | Board state to present to Game State
+type BoardState =
   { history :: NonEmptyArray StateElem    -- | holding state transition functions
-  , currentMove :: MoveCount              -- | moves counter 
   , nextTurn :: Player                    -- | which Player would have next move
   }
+
 
 -- | Message is the output from the Cell component 
 data Message
   = IsClicked Position StateElem
+  | HasWinner BoardState Square
   | IsReturned Int
 
 --- Helpers ---
+
+rewindMoveCount :: Int -> MoveCount -> Maybe MoveCount
+rewindMoveCount ix (MkMoveCount c)
+  | ix < c = Just <<< MkMoveCount $ c - ix
+  | otherwise = Nothing
+
+unMoveCount :: MoveCount -> Int
+unMoveCount (MkMoveCount i) = i
+
+initMoveCount :: MoveCount
+initMoveCount = MkMoveCount 0
+
+nextMoveCount :: MoveCount -> MoveCount
+nextMoveCount (MkMoveCount x) = MkMoveCount $ x + 1
+
+reverseMoveCount :: MoveCount -> MoveCount
+reverseMoveCount (MkMoveCount x) = MkMoveCount $ x - 1
+
+nextPlayer :: Player -> Player
+nextPlayer X = O
+nextPlayer _ = X
+
+initPlayer :: Player
+initPlayer = X
 
 emptySquare :: Square
 emptySquare = Nothing
@@ -74,8 +113,11 @@ emptyStateElem :: StateElem
 emptyStateElem _ = Nothing
 
 --- Square Component creation ---
+
+boardSize = 3
+
 sizeArray :: NonEmptyArray Int
-sizeArray = 0 NEArray... 2
+sizeArray = 0 NEArray... (boardSize - 1)
 
 mkPosition :: Int -> Int -> Position
 mkPosition r i
