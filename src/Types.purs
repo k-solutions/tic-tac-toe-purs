@@ -28,6 +28,8 @@ import Data.Eq.Generic (genericEq)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
 import Data.Show.Generic (genericShow)
+import Halogen.HTML (samp)
+import Halogen.Hooks.Internal.Types (_memoValuesImpl)
 
 --- Data  Types ---
 
@@ -67,6 +69,9 @@ instance Ord Position where
 
 newtype MoveCount = MkMoveCount Int
 
+instance Show MoveCount where
+  show (MkMoveCount c) = "Counter: " <> show c   
+
 -- | Board state to present to Game State
 type BoardState =
   { history :: NonEmptyArray StateElem    -- | holding state transition functions
@@ -79,6 +84,13 @@ data Message
   = IsClicked Position StateElem
   | HasWinner BoardState Square
   | IsReturned Int
+
+-- derive instance Generic Message _
+
+instance Show Message where
+  show (IsClicked p _) = "Clicked on " <> show p 
+  show (HasWinner _ s) = "Winner is " <> show s
+  show (IsReturned i)  = "Revert state by " <> show i 
 
 --- Helpers ---
 

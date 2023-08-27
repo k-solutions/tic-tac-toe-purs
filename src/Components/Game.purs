@@ -23,7 +23,7 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.Hooks as Hooks
 import Type.Proxy (Proxy(..))
-import Types (Message(..), MoveCount, Player(..), Square, StateElem, BoardState, emptyStateElem, initMoveCount, initPlayer, mkPosition, nextPlayer, reverseMoveCount, unMoveCount, rewindMoveCount)
+import Types (BoardState, Message(..), MoveCount, Player(..), Square, StateElem, emptyStateElem, initMoveCount, initPlayer, mkPosition, nextMoveCount, nextPlayer, reverseMoveCount, rewindMoveCount, unMoveCount)
 import Web.HTML.Common (ClassName(..))
 
 --- Types ---
@@ -80,18 +80,18 @@ mkGameComponent = Hooks.component $ \_rec _ -> Hooks.do
          case rewindState ix oldSt of
            Just st -> Hooks.put gameStateIdx st
            Nothing -> do 
-             void $ log $ "Could not rewind state " <> show gameState
+             void $ log $ "Could not rewind state with " <> show gameState.currentMove
              pure unit 
     handleHistory m = do
       void <<< log $ "wrong message captured" <> show m 
       pure unit
    
     handleBoard (HasWinner brdSt sq) = do
-      Hook.modify_ gameStateIdx $ \ st -> 
+      Hooks.modify_ gameStateIdx $ \ st -> 
         st { boardState = brdSt
-           , currentMove = 
+           , currentMove = nextMoveCount st.currentMove 
            }       
-
+    handleBoard _ = pure unit 
 
     status :: String
     status = 
@@ -117,14 +117,14 @@ mkGameComponent = Hooks.component $ \_rec _ -> Hooks.do
   _history :: Proxy "history"
   _history = Proxy
 
-  skipTurnsBy :: Player -> Int -> Player
-  skipTurnsBy p i = formPipe p
-    where
-    formPipe = NEArray.foldr1 (<<<) <<< unfoldr1 go $ i
-    go i'
-      | i' <= 0 = Tuple nextPlayer Nothing
-      | otherwise = Tuple nextPlayer $ Just (i' - 1)
-
+--  skipTurnsBy :: Player -> Int -> Player
+--  skipTurnsBy p i = formPipe p
+--    where
+--    formPipe = NEArray.foldr1 (<<<) <<< unfoldr1 go $ i
+--    go i'
+--      | i' <= 0 = Tuple nextPlayer Nothing
+--      | otherwise = Tuple nextPlayer $ Just (i' - 1)
+--
   initBoard :: BoardState
   initBoard = 
     { history: NEArray.singleton emptyStateElem

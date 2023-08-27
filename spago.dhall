@@ -11,20 +11,22 @@ When creating a new Spago project, you can use
 to generate this file without the comments in this block.
 -}
 { name = "tic-tic-toe"
-, dependencies = 
-    [ "arrays"
-    , "console"
-    , "control"
-    , "maybe"
-    , "effect"
-    , "foldable-traversable"
-    , "unfoldable"
-    , "prelude"
-    , "halogen"
-    , "halogen-hooks" 
-    , "tuples"
-    , "web-html"
-    ]
+, dependencies =
+  [ "arrays"
+  , "console"
+  , "control"
+  , "effect"
+  , "foldable-traversable"
+  , "foreign"
+  , "halogen"
+  , "halogen-hooks"
+  , "maybe"
+  , "nonempty"
+  , "prelude"
+  , "tuples"
+  , "unfoldable"
+  , "web-html"
+  ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
 }
