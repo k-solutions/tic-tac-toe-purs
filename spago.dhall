@@ -12,7 +12,9 @@ to generate this file without the comments in this block.
 -}
 { name = "tic-tic-toe"
 , dependencies =
-  [ "arrays"
+  [ "aff"
+  , "arrays"
+  , "assert"
   , "console"
   , "control"
   , "effect"
@@ -23,8 +25,12 @@ to generate this file without the comments in this block.
   , "maybe"
   , "nonempty"
   , "prelude"
+  , "spec"
+  , "spec-discovery"
+  , "test-unit"
   , "tuples"
   , "unfoldable"
+  , "web-dom"
   , "web-html"
   ]
 , packages = ./packages.dhall
