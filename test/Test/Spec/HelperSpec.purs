@@ -1,20 +1,30 @@
 module Test.Spec.HelpersSpec where
 
+import Helpers
 import Prelude
 
-import Data.Array.NonEmpty (NonEmptyArray(..))
+import Data.BoardState (BoardState)
 import Data.BoardState as BoardState
-import Data.Foldable (foldM)
-import Data.Maybe (fromJust, Maybe(..))
-import Data.Player (Player(..))
+import Data.Maybe (Maybe(..))
+
 import Data.Position (PositionsType(..))
 import Data.Position as Position
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldNotEqual, shouldEqual)
-import Helpers 
+
+mbBoardState :: Maybe BoardState
+mbBoardState = do
+  posXNEArr <- Position.generate Row 1
+  posONEArr <- Position.generate Row 3
+  BoardState.generateByPositions posXNEArr posONEArr
 
 spec :: Spec Unit 
 spec = describe "Helpers module tests" do
+
+  it "generateByPositions gives proper statee" do
+     let result = showBoardState <$> mbBoardState  
+     result `shouldNotEqual` Nothing   
+
   it "showBoardState makes state Showable" do
      let gameState = BoardState.init 
          result = showBoardState gameState
@@ -26,15 +36,12 @@ spec = describe "Helpers module tests" do
      result `shouldEqual` Just true 
  
   it "On non empty BoardState any generated move is proper" do
-     let mbResult = Position.mkPosition 1 1     
-         result = flip isMoveValid BoardState.init <$> mbResult 
+     let result = do
+           boardState <- mbBoardState
+           pos <- Position.mkPosition 1 1     
+           pure $ pos `isMoveValid` boardState 
      result `shouldEqual` Just true 
         
   it "hasWinPositions for Row with 3 moves X X X and a winner should not return Nothing" do
-    let gameState = do
-          posNEArr <- Position.generate Row 1
-          let elemFn = const $ Just X
-              scanFn state pos = BoardState.next pos elemFn state
-          foldM scanFn BoardState.init posNEArr
-        result = hasWinPositions Row <$> gameState <*> Just 1
+    let result = hasWinPositions Row <$> mbBoardState <*> Just 1
     result `shouldNotEqual` Nothing
