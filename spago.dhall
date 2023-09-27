@@ -14,23 +14,17 @@ to generate this file without the comments in this block.
 , dependencies =
   [ "aff"
   , "arrays"
-  , "assert"
   , "console"
-  , "control"
   , "effect"
   , "foldable-traversable"
-  , "foreign"
   , "halogen"
   , "halogen-hooks"
   , "maybe"
-  , "nonempty"
   , "prelude"
   , "spec"
   , "spec-discovery"
   , "test-unit"
   , "tuples"
-  , "unfoldable"
-  , "web-dom"
   , "web-html"
   ]
 , packages = ./packages.dhall

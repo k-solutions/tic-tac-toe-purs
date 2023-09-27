@@ -6,23 +6,19 @@ import Prelude
 
 import Components.Board (BoardQuery(..))
 import Components.Board as Board
-import Control.Alt ((<|>))
 import Data.Array as Array
-import Data.Array.NonEmpty as NEArray
-import Data.BoardState (BoardState, Message(..))
+-- import Data.Array.NonEmpty as NEArray
+import Data.BoardState (Message(..))
 import Data.BoardState as BoardState
 import Data.Counter (Counter)
 import Data.Counter as Counter
-import Data.Foldable (or)
 import Data.Maybe (Maybe(..))
 import Data.Player (Square, Player)
-import Data.Player as Player
-import Data.Tuple (Tuple(..))
+-- import Data.Player as Player
+-- import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Data.Unfoldable1 (unfoldr1)
 import Effect.Class (class MonadEffect)
 import Effect.Class.Console (log)
-import Foreign.Index (ix)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -30,8 +26,9 @@ import Halogen.HTML.Properties as HP
 import Halogen.Hooks as Hooks
 import Type.Proxy (Proxy(..))
 import Web.HTML.Common (ClassName(..))
+import Helpers as Helpers
 
---- Types ---
+--- Game Component Types ---
 
 type GameState =
   { currentMove :: Counter                   -- | moves counter 
@@ -69,7 +66,7 @@ mkGameComponent = Hooks.component $ \rec  _ -> Hooks.do
       case mbState of  
           Just bState -> do 
             Hooks.put boardStateIdx bState
-            log $ "Board state updated with " <> BoardState.showBoardState bState 
+            log $ "Board state updated with " <> Helpers.showBoardState bState 
             pure Nothing  -- boardState
           Nothing -> pure Nothing  
 
