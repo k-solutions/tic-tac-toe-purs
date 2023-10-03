@@ -1,18 +1,18 @@
-module Data.Player 
+module Data.Player
   ( Player(..)
-  , Square(..)  
+  , Square(..)
   , init
   , next
-  , rewind 
+  , rewind
   ) where
 
-import Prelude 
+import Prelude
 
 import Data.Array as Array
 import Data.Maybe (Maybe)
 
 import Data.Generic.Rep (class Generic)
-import Data.Show.Generic (genericShow) 
+import Data.Show.Generic (genericShow)
 import Data.Eq.Generic (genericEq)
 
 -- | Board state to present to Game State
@@ -30,14 +30,13 @@ type Square = Maybe Player
 
 --- Player API ---
 
-init :: Player 
+init :: Player
 init = X
 
-next :: Player -> Player 
+next :: Player -> Player
 next X = O
-next _ = X 
+next _ = X
 
-rewind :: Int -> Player -> Player   
-rewind i p 
-  = Array.foldr (\f p -> f p) p 
+rewind :: Int -> Player -> Player
+rewind i p = Array.foldr (\f p -> f p) p
   $ Array.replicate i next

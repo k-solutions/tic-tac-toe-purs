@@ -23,10 +23,9 @@ spec = describe "Player module tests" do
     let result = rewind 0 X
     result `shouldEqual` X
 
-
   it "rewind 3 X should return O" do
     let result = rewind 3 X
-    result `shouldEqual` O 
+    result `shouldEqual` O
 
   it "rewind 2 X should return X" do
     let result = rewind 2 X

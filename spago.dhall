@@ -22,10 +22,9 @@ to generate this file without the comments in this block.
   , "maybe"
   , "prelude"
   , "spec"
-  , "spec-discovery"
-  , "test-unit"
   , "tuples"
   , "web-html"
+  , "partial"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
