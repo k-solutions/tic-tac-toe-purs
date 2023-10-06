@@ -1,4 +1,4 @@
-module Test.Spec.HelpersSpec where
+module Test.Spec.HelperSpec where
 
 import Helpers
 import Prelude
@@ -16,12 +16,12 @@ import Data.Traversable (sequence)
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldNotEqual, shouldEqual)
 
-mbBoardState :: Maybe BoardState
-mbBoardState = do
-  posXNEArr <- Position.generate Row 1
+mbBoardState :: PositionsType -> Maybe BoardState
+mbBoardState pt = do
+  posXNEArr <- Position.generate pt 1
   posONEArr <- sequence $ NEArray.singleton (Position.mkPosition 2 3)
     <> NEArray.singleton (Position.mkPosition 3 3)
-    <> NEArray.singleton (Position.mkPosition 2 2)
+    <> NEArray.singleton (Position.mkPosition 3 2)
   BoardState.generateByPositions posXNEArr posONEArr
 
 squareFn
@@ -37,7 +37,7 @@ spec :: Spec Unit
 spec = describe "Helpers module tests" do
 
   it "generateByPositions gives proper statee" do
-    let result = showBoardState <$> mbBoardState
+    let result = showBoardState <$> mbBoardState Row
     result `shouldEqual` Just "Board state for moves: 6 and player: X"
 
   it "showBoardState makes state Showable" do
@@ -72,14 +72,14 @@ spec = describe "Helpers module tests" do
     let
       mbResult = do
         pos <- Position.mkPosition 1 3
-        state <- mbBoardState
+        state <- mbBoardState Row 
         pure $ pos `isMoveValid` state
     mbResult `shouldEqual` Just false
 
   it "Winning BoardState any generated move is proper" do
     let
       result = do
-        boardState <- mbBoardState
+        boardState <- mbBoardState Row
         pos <- Position.mkPosition 2 1
         pure $ pos `isMoveValid` boardState
     result `shouldEqual` Just true
@@ -87,9 +87,17 @@ spec = describe "Helpers module tests" do
   it "toBoard for Row with 3 moves X X X should return proper players" do
     let
       pRow1 = Position.generate Row 1
-      result = toBoard <$> pRow1 <*> mbBoardState
+      result = toBoard <$> pRow1 <*> mbBoardState Row
     result `shouldEqual` Just (Array.replicate 3 $ Player.X :: Array Player.Player)
 
-  it "hasWinPositions for Row with 3 moves X X X and a winner should not return Nothing" do
-    let result = join $ hasWinPositions Row <$> mbBoardState <*> Just 1
+  it "hasWinPositions for Row with 3 moves X X X and a winner should return X" do
+    let result = join $ hasWinPositions Row <$> mbBoardState Row <*> Just 1
+    result `shouldEqual` Just Player.X
+
+  it "hasWinPositions for Diagonal with 3 moves X X X and a winner should not return Nothing" do
+    let result = join $ hasWinPositions Diagonal <$> mbBoardState Diagonal <*> Just 1
+    result `shouldEqual` Just Player.X
+
+  it "hasWinPositions for Column with 3 moves X X X and a winner should not return Nothing" do
+    let result = join $ hasWinPositions Column <$> mbBoardState Column <*> Just 1
     result `shouldEqual` Just Player.X

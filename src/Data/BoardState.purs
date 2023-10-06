@@ -32,29 +32,28 @@ generateByPositions
 generateByPositions xArr oArr = foldM mbBoardState init resArr
   where
   lenX = NEArray.length xArr
-
   lenO = NEArray.length oArr
-
-  seFn pos player newPos
-    | pos == newPos = Just player
-    | otherwise = Nothing
-
   resArr
     | lenX > lenO = NEArray.zip (map Just xArr) $ map Just oArr <> NEArray.replicate (lenX - lenO) Nothing
     | lenX < lenO = NEArray.zip (map Just xArr <> NEArray.replicate (lenO - lenX) Nothing) $ map Just oArr
     | otherwise = NEArray.zip (map Just xArr) $ map Just oArr
 
-  mbBoardState state (Tuple (Just xPos) (Just oPos)) = do
-    xState <- next xPos (seFn xPos state.nextTurn) state
-    oState <- next oPos (seFn oPos $ Player.next state.nextTurn) xState
-    pure oState
-  mbBoardState state (Tuple Nothing (Just oPos)) = do
-    oState <- next oPos (seFn oPos $ Player.next state.nextTurn) state
-    pure oState
-  mbBoardState state (Tuple (Just xPos) Nothing) = do
-    newState <- next xPos (seFn xPos $ Player.next state.nextTurn) state
-    pure newState
-  mbBoardState state (Tuple Nothing Nothing) = pure state
+-- seFn :: Player -> Position -> Maybe Player 
+seFn pos player newPos
+  | pos == newPos = Just player
+  | otherwise = Nothing
+
+mbBoardState state (Tuple (Just xPos) (Just oPos)) = do
+  xState <- next xPos (seFn xPos state.nextTurn) state
+  oState <- next oPos (seFn oPos $ Player.next state.nextTurn) xState
+  pure oState
+mbBoardState state (Tuple Nothing (Just oPos)) = do
+  oState <- next oPos (seFn oPos $ Player.next state.nextTurn) state
+  pure oState
+mbBoardState state (Tuple (Just xPos) Nothing) = do
+  newState <- next xPos (seFn xPos $ Player.next state.nextTurn) state
+  pure newState
+mbBoardState state (Tuple Nothing Nothing) = pure state
 
 hasBoardWinPositions :: BoardState -> Square
 hasBoardWinPositions state = Array.head
@@ -77,6 +76,8 @@ next pos move s
   | otherwise = Nothing
 
 reset :: Int -> BoardState -> Maybe BoardState
-reset idx state = do
-  let r = Player.rewind idx state.nextTurn
-  pure $ state { history = Array.drop idx state.history, nextTurn = r }
+reset idx state
+  | Array.length state.history >= idx = do
+      let r = Player.rewind idx state.nextTurn
+      pure $ state { history = Array.drop idx state.history, nextTurn = r }
+  | otherwise = Nothing   

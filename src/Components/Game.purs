@@ -11,7 +11,7 @@ import Data.BoardState (Message(..))
 import Data.BoardState as BoardState
 import Data.Counter (Counter)
 import Data.Counter as Counter
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Player (Square, Player)
 import Data.Tuple.Nested ((/\))
 import Effect.Class (class MonadEffect)
@@ -28,8 +28,8 @@ import Helpers as Helpers
 --- Game Component Types ---
 
 type GameState =
-  { currentMove :: Counter -- | moves counter 
-  , winner :: Square -- | which Player is winner
+  { currentMove :: Int        -- Counter  -- | moves counter 
+  , winner :: Square          -- | which Player is winner
   }
 
 --- Public API ---
@@ -58,13 +58,13 @@ mkGameComponent = Hooks.component $ \rec _ -> Hooks.do
   gameState /\ gameStateIdx <- Hooks.useState (initState :: GameState)
   boardState /\ boardStateIdx <- Hooks.useState (BoardState.init)
 
-  Hooks.captures {} Hooks.useTickEffect do
+  Hooks.captures { } Hooks.useTickEffect do
     mbState <- Hooks.query rec.slotToken _board unit $ H.mkRequest GetState
     case mbState of
       Just bState -> do
         Hooks.put boardStateIdx bState
         log $ "Updated from GameComponent capure with: " <> Helpers.showBoardState bState
-        pure Nothing -- boardState
+        pure Nothing 
       Nothing -> pure Nothing
 
   let
@@ -73,17 +73,18 @@ mkGameComponent = Hooks.component $ \rec _ -> Hooks.do
       setSlot ix = HH.slot _history ix (mkHistoryButton ("Move # " <> show ix) ix) unit handleHistory
 
     rewindState :: Int -> GameState -> Maybe GameState
-    rewindState ix st = do
-      rMove <- Counter.rewind ix st.currentMove
-      pure $
-        { currentMove: rMove
-        , winner: Nothing
-        }
+    rewindState ix st 
+      | st.currentMove >= ix = do
+          let rMove = st.currentMove - ix   -- rMove <- Counter.rewind ix st.currentMove
+          pure $ st { currentMove = rMove }
+      | otherwise = Nothing   
 
     handleHistory (IsReturned ix) = do
       oldSt <- Hooks.get gameStateIdx
       case rewindState ix oldSt of
-        Just st -> Hooks.put gameStateIdx st
+        Just st -> do
+          Hooks.modify_ boardStateIdx $ (\s -> fromMaybe s $ BoardState.reset ix s)   
+          Hooks.put gameStateIdx st
         Nothing -> do
           void $ log $ "Could not rewind state with " <> show gameState.currentMove
           pure unit
@@ -91,10 +92,12 @@ mkGameComponent = Hooks.component $ \rec _ -> Hooks.do
       void <<< log $ "wrong message captured" <> show m
       pure unit
 
-    handleBoard (HasWinner brdSt _) = do
+    handleBoard (HasWinner w) = do
       Hooks.modify_ gameStateIdx $ \st ->
-        st { currentMove = Counter.next gameState.currentMove }
-    handleBoard _ = pure unit
+        st { winner = w, currentMove = Array.length boardState.history }
+    handleBoard _ = do
+      log "Board state change" 
+      pure unit
 
     status :: String
     status =
@@ -122,6 +125,6 @@ mkGameComponent = Hooks.component $ \rec _ -> Hooks.do
 
   initState :: GameState
   initState =
-    { currentMove: Counter.init
+    { currentMove: 0  -- Counter.init
     , winner: Nothing
     }

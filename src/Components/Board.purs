@@ -100,7 +100,7 @@ mkBoardComponent = Hooks.component $ \rec _ -> Hooks.do
         Nothing ->
           void $ log $ "Bad move position detected: " <> show pos
 
-      Hooks.raise rec.outputToken $ HasWinner boardState $ BoardState.hasBoardWinPositions boardState
+      Hooks.raise rec.outputToken $ HasWinner $ BoardState.hasBoardWinPositions boardState
 
     handleCell _ = do
       void $ log $ "We could not capture proper message for cell change " <> show boardState.nextTurn

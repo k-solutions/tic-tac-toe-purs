@@ -19,13 +19,13 @@ type BoardState =
 
 -- | Message is the output from the Cell component
 data Message
-  = IsClicked Position -- StateElem
-  | HasWinner BoardState Square
+  = IsClicked Position 
+  | HasWinner Square
   | IsReturned Int
 
 instance Show Message where
-  show (IsClicked p) = "Clicked on " <> show p
-  show (HasWinner _ s) = "Winner is " <> show s
+  show (IsClicked p)  = "Clicked on " <> show p
+  show (HasWinner s)  = "Winner is " <> show s
   show (IsReturned i) = "Revert state by " <> show i
 
 type StateElem = Position -> Square
