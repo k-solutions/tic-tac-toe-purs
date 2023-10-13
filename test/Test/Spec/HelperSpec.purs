@@ -38,13 +38,13 @@ spec = describe "Helpers module tests" do
 
   it "generateByPositions gives proper statee" do
     let result = showBoardState <$> mbBoardState Row
-    result `shouldEqual` Just "Board state for moves: 6 and player: X"
+    result `shouldEqual` Just "Board state for moves: 6, for reset: 0 and player: X"
 
   it "showBoardState makes state Showable" do
     let
       gameState = BoardState.init
       result = showBoardState gameState
-    result `shouldEqual` "Board state for moves: 0 and player: X"
+    result `shouldEqual` "Board state for moves: 0, for reset: 0 and player: X"
 
   it "On empty BoardState any generated move is valid" do
     let
@@ -58,7 +58,7 @@ spec = describe "Helpers module tests" do
         pos1 <- Position.mkPosition 1 1
         stateX <- BoardState.next pos1 (squareFn pos1 Player.X) BoardState.init
         pure stateX
-    (showBoardState <$> result0) `shouldEqual` Just "Board state for moves: 1 and player: O"
+    (showBoardState <$> result0) `shouldEqual` Just "Board state for moves: 1, for reset: 0 and player: O"
     let
       result = do
         pos2 <- Position.mkPosition 1 2
@@ -72,7 +72,7 @@ spec = describe "Helpers module tests" do
     let
       mbResult = do
         pos <- Position.mkPosition 1 3
-        state <- mbBoardState Row 
+        state <- mbBoardState Row
         pure $ pos `isMoveValid` state
     mbResult `shouldEqual` Just false
 

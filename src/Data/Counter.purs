@@ -10,12 +10,10 @@ import Data.Maybe (Maybe(..))
 
 newtype Counter = MkCounter Int
 
-derive instance Eq Counter 
+derive instance Eq Counter
 
 instance Show Counter where
   show (MkCounter c) = "Counter: " <> show c
-
- 
 
 --| API make use of the Counter for movies on the Board 
 rewind :: Int -> Counter -> Maybe Counter

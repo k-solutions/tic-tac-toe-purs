@@ -64,7 +64,7 @@ hasBoardWinPositions state = Array.head
       <> NEArray.singleton (hasWinPositions Diagonal state 1)
 
 init :: BoardState
-init = { history: [], nextTurn: Player.init }
+init = { history: [], nextTurn: Player.init, reset: Nothing }
 
 next
   :: Position
@@ -78,6 +78,10 @@ next pos move s
 reset :: Int -> BoardState -> Maybe BoardState
 reset idx state
   | Array.length state.history >= idx = do
-      let r = Player.rewind idx state.nextTurn
-      pure $ state { history = Array.drop idx state.history, nextTurn = r }
-  | otherwise = Nothing   
+      let
+        diff = Array.length state.history - idx  
+        r = Player.rewind idx state.nextTurn
+        { after: oldArr, before: newArr } = Array.splitAt diff state.history
+        newState = state { history = newArr, nextTurn = r, reset = Just oldArr }
+      pure newState
+  | otherwise = Nothing

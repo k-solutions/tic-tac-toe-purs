@@ -2185,7 +2185,7 @@
         return Nothing.value;
       }
       ;
-      throw new Error("Failed pattern match at Data.BoardState (line 79, column 1 - line 79, column 47): " + [idx.constructor.name, state3.constructor.name]);
+      throw new Error("Failed pattern match at Data.BoardState (line 78, column 1 - line 78, column 47): " + [idx.constructor.name, state3.constructor.name]);
     };
   };
   var next2 = function(pos) {
@@ -2202,7 +2202,7 @@
           return Nothing.value;
         }
         ;
-        throw new Error("Failed pattern match at Data.BoardState (line 70, column 1 - line 74, column 22): " + [pos.constructor.name, move.constructor.name, s.constructor.name]);
+        throw new Error("Failed pattern match at Data.BoardState (line 69, column 1 - line 73, column 22): " + [pos.constructor.name, move.constructor.name, s.constructor.name]);
       };
     };
   };
@@ -6944,6 +6944,7 @@
 
   // output/Halogen.Hooks.Internal.Types/index.js
   var toStateValue = unsafeCoerce2;
+  var toRefValue = unsafeCoerce2;
   var toQueryValue = unsafeCoerce2;
   var toOutputValue = unsafeCoerce2;
   var toMemoValuesImpl = function(v) {
@@ -6951,6 +6952,7 @@
   };
   var toMemoValues = unsafeCoerce2;
   var fromStateValue = unsafeCoerce2;
+  var fromRefValue = unsafeCoerce2;
   var fromQueryValue = unsafeCoerce2;
   var fromMemoValues = unsafeCoerce2;
   var fromMemoValue = unsafeCoerce2;
@@ -6972,16 +6974,12 @@
   };
 
   // output/Halogen.Query/index.js
-  var identity8 = /* @__PURE__ */ identity(categoryFn);
   var mkTell = function(act) {
     return act(unit);
   };
-  var mkRequest = function(req) {
-    return req(identity8);
-  };
 
   // output/Halogen.Hooks.HookM/index.js
-  var identity9 = /* @__PURE__ */ identity(categoryFn);
+  var identity8 = /* @__PURE__ */ identity(categoryFn);
   var lookup5 = /* @__PURE__ */ lookup2();
   var HookM = function(x) {
     return x;
@@ -7153,7 +7151,7 @@
                       return $144($145($146));
                     };
                   };
-                }, q2, identity9))));
+                }, q2, identity8))));
               };
             };
           };
@@ -7166,12 +7164,12 @@
     return function(dictIsSymbol) {
       var query22 = query1(dictIsSymbol);
       return function(dictOrd) {
-        var query32 = query22(dictOrd);
+        var query3 = query22(dictOrd);
         return function(slotToken) {
           return function(label5) {
             return function(slot4) {
               return function(req) {
-                return $$void5(query32(slotToken)(label5)(slot4)(mkTell(req)));
+                return $$void5(query3(slotToken)(label5)(slot4)(mkTell(req)));
               };
             };
           };
@@ -7200,7 +7198,7 @@
     };
   };
   var get2 = function(identifier) {
-    return modify5(identifier)(identity9);
+    return modify5(identifier)(identity8);
   };
 
   // output/Halogen.Hooks.Internal.Eval.Types/index.js
@@ -8088,6 +8086,13 @@
     var initialState$prime = toStateValue(initialState);
     return unsafeToHook(new UseState(initialState$prime, $$interface));
   };
+  var useRef = function(initialValue) {
+    var $$interface = function(v) {
+      return new Tuple(fromRefValue(v.value0), v.value1);
+    };
+    var initialValue$prime = toRefValue(initialValue);
+    return unsafeToHook(new UseRef(initialValue$prime, $$interface));
+  };
   var useQuery = function(token) {
     return function(handler3) {
       var handler$prime = function($11) {
@@ -8109,10 +8114,11 @@
   };
 
   // output/Components.Board/index.js
+  var captures2 = /* @__PURE__ */ captures(/* @__PURE__ */ eqRec()(eqRowNil));
   var discard5 = /* @__PURE__ */ discard(discardUnit)(bindHookM);
-  var show5 = /* @__PURE__ */ show(showPosition);
-  var show13 = /* @__PURE__ */ show(showPlayer);
+  var show5 = /* @__PURE__ */ show(/* @__PURE__ */ showMaybe(showPlayer));
   var pure7 = /* @__PURE__ */ pure(applicativeHookM);
+  var show13 = /* @__PURE__ */ show(showPlayer);
   var when3 = /* @__PURE__ */ when(applicativeHookM);
   var eq4 = /* @__PURE__ */ eq(eqPosition);
   var bind8 = /* @__PURE__ */ bind(bindHookM);
@@ -8123,6 +8129,7 @@
   };
   var tell3 = /* @__PURE__ */ tell2()(squareIsSymbol)(ordPosition);
   var $$void7 = /* @__PURE__ */ $$void(functorHookM);
+  var show23 = /* @__PURE__ */ show(showPosition);
   var bind14 = /* @__PURE__ */ bind(bindMaybe);
   var pure12 = /* @__PURE__ */ pure(applicativeMaybe);
   var slot2 = /* @__PURE__ */ slot()(squareIsSymbol)(ordPosition);
@@ -8140,34 +8147,26 @@
     };
     return Tell2;
   }();
-  var GetState = /* @__PURE__ */ function() {
-    function GetState2(value0) {
-      this.value0 = value0;
-    }
-    ;
-    GetState2.create = function(value0) {
-      return new GetState2(value0);
-    };
-    return GetState2;
-  }();
   var mkSquareComponent = function(dictMonadEffect) {
     var log4 = log2(monadEffectHookM(dictMonadEffect));
     return function(pos) {
       return component(function(rec) {
-        return function(v) {
-          return bind5(useState(Nothing.value))(function(v1) {
-            return discard2(useQuery(rec.queryToken)(function(v2) {
-              return discard5(put2(v1.value1)(new Just(v2.value0)))(function() {
-                return discard5(log4("We dected new state for: " + (show5(pos) + (" and player: " + show13(v2.value0)))))(function() {
-                  return pure7(new Just(v2.value1));
+        return function(initSq) {
+          return bind5(useState(initSq))(function(v) {
+            return discard2(captures2({})(useTickEffect)(discard5(log4("Sqare was initied with: " + show5(initSq)))(function() {
+              return pure7(Nothing.value);
+            })))(function() {
+              return discard2(useQuery(rec.queryToken)(function(v1) {
+                return discard5(put2(v.value1)(v1.value0))(function() {
+                  return pure7(new Just(v1.value1));
                 });
+              }))(function() {
+                var player = maybe("")(show13)(v.value0);
+                var isDisabled = isJust(v.value0);
+                return pure5(button([title(player), class_("square"), disabled(isDisabled), onClick(function(v1) {
+                  return when3(!isDisabled)(raise2(rec.outputToken)(new IsClicked(pos)));
+                })])([text(player)]));
               });
-            }))(function() {
-              var player = maybe("")(show13)(v1.value0);
-              var isDisabled = isJust(v1.value0);
-              return pure5(button([title(player), class_("square"), disabled(isDisabled), onClick(function(v2) {
-                return when3(!isDisabled)(raise2(rec.outputToken)(new IsClicked(pos)));
-              })])([text(player)]));
             });
           });
         };
@@ -8175,95 +8174,105 @@
     };
   };
   var mkBoardComponent = function(dictMonadEffect) {
-    var log4 = log2(monadEffectHookM(dictMonadEffect));
+    var monadEffectHookM2 = monadEffectHookM(dictMonadEffect);
+    var liftEffect7 = liftEffect(monadEffectHookM2);
+    var log4 = log2(monadEffectHookM2);
     var mkSquareComponent1 = mkSquareComponent(dictMonadEffect);
-    var squareFn = function(oldPos) {
-      return function(player) {
-        return function(sqPos) {
-          if (eq4(sqPos)(oldPos)) {
-            return new Just(player);
-          }
-          ;
-          if (otherwise) {
-            return Nothing.value;
-          }
-          ;
-          throw new Error("Failed pattern match at Components.Board (line 114, column 3 - line 114, column 55): " + [oldPos.constructor.name, player.constructor.name, sqPos.constructor.name]);
+    return function(boardRef) {
+      var squareFn = function(oldPos) {
+        return function(player) {
+          return function(sqPos) {
+            if (eq4(sqPos)(oldPos)) {
+              return new Just(player);
+            }
+            ;
+            if (otherwise) {
+              return Nothing.value;
+            }
+            ;
+            throw new Error("Failed pattern match at Components.Board (line 120, column 3 - line 120, column 55): " + [oldPos.constructor.name, player.constructor.name, sqPos.constructor.name]);
+          };
         };
       };
-    };
-    return component(function(rec) {
-      return function(v) {
-        return bind5(useState(init3))(function(v1) {
-          return discard2(useQuery(rec.queryToken)(function(v2) {
-            return bind8(get2(v1.value1))(function(bState) {
-              return pure7(new Just(v2.value0(bState)));
-            });
-          }))(function() {
-            var handleCell = function(v2) {
-              if (v2 instanceof IsClicked) {
-                return bind8(get2(v1.value1))(function(st) {
-                  return discard5(log4("Handle click for positon: " + (show5(v2.value0) + (" and state: " + showBoardState(st)))))(function() {
-                    var se = squareFn(v2.value0)(st.nextTurn);
-                    return discard5(function() {
-                      var v3 = next2(v2.value0)(se)(st);
-                      if (v3 instanceof Just) {
-                        return discard5(put2(v1.value1)(v3.value0))(function() {
-                          return discard5(tell3(rec.slotToken)($$Proxy.value)(v2.value0)(Tell.create(st.nextTurn)))(function() {
-                            return $$void7(log4("We updated from handleCell to: " + showBoardState(v3.value0)));
+      return component(function(rec) {
+        return function(initState) {
+          return bind5(useState(initState))(function(v) {
+            return discard2(captures2({})(useTickEffect)(bind8(liftEffect7(read(boardRef)))(function(bSt) {
+              return discard5(put2(v.value1)(bSt))(function() {
+                return discard5(log4("Test me: " + showBoardState(bSt)))(function() {
+                  return pure7(Nothing.value);
+                });
+              });
+            })))(function() {
+              var handleCell = function(v1) {
+                if (v1 instanceof IsClicked) {
+                  return bind8(liftEffect7(read(boardRef)))(function(st) {
+                    var se = squareFn(v1.value0)(st.nextTurn);
+                    return bind8(function() {
+                      var v2 = next2(v1.value0)(se)(st);
+                      if (v2 instanceof Just) {
+                        return discard5(liftEffect7(write(v2.value0)(boardRef)))(function() {
+                          return discard5(tell3(rec.slotToken)($$Proxy.value)(v1.value0)(Tell.create(new Just(st.nextTurn))))(function() {
+                            return discard5($$void7(log4("We updated from handleCell to: " + showBoardState(v2.value0))))(function() {
+                              return pure7(v2.value0);
+                            });
                           });
                         });
                       }
                       ;
-                      if (v3 instanceof Nothing) {
-                        return $$void7(log4("Bad move position detected: " + show5(v2.value0)));
+                      if (v2 instanceof Nothing) {
+                        return discard5(log4("Bad move position detected: " + show23(v1.value0)))(function() {
+                          return pure7(st);
+                        });
                       }
                       ;
-                      throw new Error("Failed pattern match at Components.Board (line 94, column 7 - line 101, column 66): " + [v3.constructor.name]);
-                    }())(function() {
-                      return raise2(rec.outputToken)(new HasWinner(hasBoardWinPositions(v1.value0)));
+                      throw new Error("Failed pattern match at Components.Board (line 97, column 16 - line 106, column 18): " + [v2.constructor.name]);
+                    }())(function(newSt) {
+                      return raise2(rec.outputToken)(new HasWinner(hasBoardWinPositions(newSt)));
                     });
                   });
-                });
-              }
-              ;
-              return discard5($$void7(log4("We could not capture proper message for cell change " + show13(v1.value0.nextTurn))))(function() {
-                return pure7(unit);
-              });
-            };
-            var mkSquareSlot = function(row) {
-              return function(colIdx) {
-                return bind14(mkPosition(row)(colIdx))(function(pos) {
-                  return pure12(slot2($$Proxy.value)(pos)(mkSquareComponent1(pos))(unit)(handleCell));
+                }
+                ;
+                return bind8(liftEffect7(read(boardRef)))(function(boardState) {
+                  return discard5($$void7(log4("We could not capture proper message for cell change " + show13(boardState.nextTurn))))(function() {
+                    return pure7(unit);
+                  });
                 });
               };
-            };
-            var mkRow = function(idx) {
-              return div2([class_("boardRow")])(mapMaybe2(mkSquareSlot(idx))(positionsArray));
-            };
-            return pure5(div_(toArray(map11(mkRow)(positionsArray))));
+              var mkSquareSlot = function(stInit) {
+                return function(row) {
+                  return function(colIdx) {
+                    return bind14(mkPosition(row)(colIdx))(function(pos) {
+                      return pure12(slot2($$Proxy.value)(pos)(mkSquareComponent1(pos))(stInit(pos))(handleCell));
+                    });
+                  };
+                };
+              };
+              var mkRow = function(idx) {
+                var stInit = function(p2) {
+                  return head(mapMaybe(function(f) {
+                    return f(p2);
+                  })(v.value0.history));
+                };
+                return div2([class_("boardRow")])(mapMaybe2(mkSquareSlot(stInit)(idx))(positionsArray));
+              };
+              return pure5(div_(toArray(map11(mkRow)(positionsArray))));
+            });
           });
-        });
-      };
-    });
+        };
+      });
+    };
   };
 
   // output/Components.Game/index.js
-  var captures2 = /* @__PURE__ */ captures(/* @__PURE__ */ eqRec()(eqRowNil));
-  var bind9 = /* @__PURE__ */ bind(bindHookM);
-  var boardIsSymbol = {
-    reflectSymbol: function() {
-      return "board";
-    }
-  };
-  var query3 = /* @__PURE__ */ query2()(boardIsSymbol)(ordUnit);
-  var discard6 = /* @__PURE__ */ discard(discardUnit)(bindHookM);
-  var pure8 = /* @__PURE__ */ pure(applicativeHookM);
   var show6 = /* @__PURE__ */ show(showPlayer);
-  var pure13 = /* @__PURE__ */ pure(applicativeMaybe);
+  var pure8 = /* @__PURE__ */ pure(applicativeMaybe);
+  var bind9 = /* @__PURE__ */ bind(bindHookM);
+  var discard6 = /* @__PURE__ */ discard(discardUnit)(bindHookM);
   var $$void8 = /* @__PURE__ */ $$void(functorHookM);
   var show14 = /* @__PURE__ */ show(showInt);
-  var show23 = /* @__PURE__ */ show(showMessage);
+  var pure13 = /* @__PURE__ */ pure(applicativeHookM);
+  var show24 = /* @__PURE__ */ show(showMessage);
   var slot3 = /* @__PURE__ */ slot();
   var slot1 = /* @__PURE__ */ slot3({
     reflectSymbol: function() {
@@ -8271,7 +8280,11 @@
     }
   })(ordInt);
   var fromFoldable3 = /* @__PURE__ */ fromFoldable(foldableArray);
-  var slot22 = /* @__PURE__ */ slot3(boardIsSymbol)(ordUnit);
+  var slot22 = /* @__PURE__ */ slot3({
+    reflectSymbol: function() {
+      return "board";
+    }
+  })(ordUnit);
   var mkHistoryButton = function(dictMonadEffect) {
     return function(txt) {
       return function(ix) {
@@ -8286,112 +8299,101 @@
     };
   };
   var mkGameComponent = function(dictMonadEffect) {
-    var log4 = log2(monadEffectHookM(dictMonadEffect));
+    var monadEffectHookM2 = monadEffectHookM(dictMonadEffect);
+    var liftEffect7 = liftEffect(monadEffectHookM2);
+    var log4 = log2(monadEffectHookM2);
     var mkHistoryButton1 = mkHistoryButton(dictMonadEffect);
     var mkBoardComponent2 = mkBoardComponent(dictMonadEffect);
     var initState = {
       currentMove: 0,
       winner: Nothing.value
     };
-    return component(function(rec) {
-      return function(v) {
-        return bind5(useState(initState))(function(v1) {
-          return bind5(useState(init3))(function(v2) {
-            return discard2(captures2({})(useTickEffect)(bind9(query3(rec.slotToken)($$Proxy.value)(unit)(mkRequest(GetState.create)))(function(mbState) {
-              if (mbState instanceof Just) {
-                return discard6(put2(v2.value1)(mbState.value0))(function() {
-                  return discard6(log4("Updated from GameComponent capure with: " + showBoardState(mbState.value0)))(function() {
-                    return pure8(Nothing.value);
+    return component(function(v) {
+      return function(v1) {
+        return bind5(useState(initState))(function(v2) {
+          return bind5(useRef(init3))(function(v3) {
+            var status = function() {
+              if (v2.value0.winner instanceof Just) {
+                return "Winner is : " + show6(v2.value0.winner.value0);
+              }
+              ;
+              if (v2.value0.winner instanceof Nothing) {
+                return "Next move is: " + show6(v3.value0.nextTurn);
+              }
+              ;
+              throw new Error("Failed pattern match at Components.Game (line 95, column 7 - line 97, column 76): " + [v2.value0.winner.constructor.name]);
+            }();
+            var rewindState = function(ix) {
+              return function(st) {
+                if (st.currentMove >= ix) {
+                  return pure8({
+                    currentMove: ix,
+                    winner: st.winner
                   });
-                });
-              }
-              ;
-              if (mbState instanceof Nothing) {
-                return pure8(Nothing.value);
-              }
-              ;
-              throw new Error("Failed pattern match at Components.Game (line 63, column 5 - line 68, column 30): " + [mbState.constructor.name]);
-            })))(function() {
-              var status = function() {
-                if (v1.value0.winner instanceof Just) {
-                  return "Winner is : " + show6(v1.value0.winner.value0);
                 }
                 ;
-                if (v1.value0.winner instanceof Nothing) {
-                  return "Next move is: " + show6(v2.value0.nextTurn);
+                if (otherwise) {
+                  return Nothing.value;
                 }
                 ;
-                throw new Error("Failed pattern match at Components.Game (line 104, column 7 - line 106, column 76): " + [v1.value0.winner.constructor.name]);
-              }();
-              var rewindState = function(ix) {
-                return function(st) {
-                  if (st.currentMove >= ix) {
-                    var rMove = st.currentMove - ix | 0;
-                    return pure13({
-                      currentMove: rMove,
-                      winner: st.winner
+                throw new Error("Failed pattern match at Components.Game (line 64, column 5 - line 64, column 55): " + [ix.constructor.name, st.constructor.name]);
+              };
+            };
+            var handleHistory = function(v4) {
+              if (v4 instanceof IsReturned) {
+                return bind9(get2(v2.value1))(function(oldSt) {
+                  var diff = oldSt.currentMove - v4.value0 | 0;
+                  var v5 = rewindState(v4.value0)(oldSt);
+                  if (v5 instanceof Just) {
+                    return bind9(liftEffect7(modify(function(s) {
+                      return fromMaybe(s)(reset(diff)(s));
+                    })(v3.value1)))(function(bSt) {
+                      return put2(v2.value1)(v5.value0);
                     });
                   }
                   ;
-                  if (otherwise) {
-                    return Nothing.value;
+                  if (v5 instanceof Nothing) {
+                    return discard6($$void8(log4("Could not rewind state with " + show14(v2.value0.currentMove))))(function() {
+                      return pure13(unit);
+                    });
                   }
                   ;
-                  throw new Error("Failed pattern match at Components.Game (line 75, column 5 - line 75, column 55): " + [ix.constructor.name, st.constructor.name]);
-                };
-              };
-              var handleHistory = function(v3) {
-                if (v3 instanceof IsReturned) {
-                  return bind9(get2(v1.value1))(function(oldSt) {
-                    var v4 = rewindState(v3.value0)(oldSt);
-                    if (v4 instanceof Just) {
-                      return discard6(modify_3(v2.value1)(function(s) {
-                        return fromMaybe(s)(reset(v3.value0)(s));
-                      }))(function() {
-                        return put2(v1.value1)(v4.value0);
-                      });
-                    }
-                    ;
-                    if (v4 instanceof Nothing) {
-                      return discard6($$void8(log4("Could not rewind state with " + show14(v1.value0.currentMove))))(function() {
-                        return pure8(unit);
-                      });
-                    }
-                    ;
-                    throw new Error("Failed pattern match at Components.Game (line 84, column 7 - line 90, column 20): " + [v4.constructor.name]);
-                  });
-                }
-                ;
-                return discard6($$void8(log4("wrong message captured" + show23(v3))))(function() {
-                  return pure8(unit);
+                  throw new Error("Failed pattern match at Components.Game (line 72, column 7 - line 79, column 20): " + [v5.constructor.name]);
                 });
+              }
+              ;
+              return discard6($$void8(log4("wrong message captured" + show24(v4))))(function() {
+                return pure13(unit);
+              });
+            };
+            var moves = function() {
+              var setSlot = function(ix) {
+                return slot1($$Proxy.value)(ix)(mkHistoryButton1("Move # " + show14(ix))(ix))(unit)(handleHistory);
               };
-              var moves = function() {
-                var setSlot = function(ix) {
-                  return slot1($$Proxy.value)(ix)(mkHistoryButton1("Move # " + show14(ix))(ix))(unit)(handleHistory);
+              return fromFoldable3(mapWithIndex2(function(ix) {
+                return function(v4) {
+                  return setSlot(ix);
                 };
-                return fromFoldable3(mapWithIndex2(function(ix) {
-                  return function(v3) {
-                    return setSlot(ix);
-                  };
-                })(v2.value0.history));
-              }();
-              var handleBoard = function(v3) {
-                if (v3 instanceof HasWinner) {
-                  return modify_3(v1.value1)(function(st) {
+              })(v3.value0.history));
+            }();
+            var handleBoard = function(v4) {
+              if (v4 instanceof HasWinner) {
+                return bind9(liftEffect7(read(v3.value1)))(function(boardSt) {
+                  return modify_3(v2.value1)(function(st) {
                     return {
-                      currentMove: st.currentMove,
-                      winner: v3.value0
+                      currentMove: length(boardSt.history),
+                      winner: v4.value0
                     };
                   });
-                }
-                ;
-                return discard6(log4("Board state change"))(function() {
-                  return pure8(unit);
                 });
-              };
-              return pure5(div2([class_("game")])([slot22($$Proxy.value)(unit)(mkBoardComponent2)(unit)(handleBoard), div2([class_("gameInfo")])([div_([text(status)]), div_(moves)])]));
-            });
+              }
+              ;
+              return discard6(log4("Board state change"))(function() {
+                return pure13(unit);
+              });
+            };
+            var mkBoardSlot = slot22($$Proxy.value)(unit)(mkBoardComponent2(v3.value1))(v3.value0)(handleBoard);
+            return pure5(div2([class_("game")])([mkBoardSlot, div2([class_("gameInfo")])([div_([text(status)]), div_(moves)])]));
           });
         });
       };
@@ -8482,9 +8484,9 @@
   var map14 = /* @__PURE__ */ map(functorEffect);
   var discard7 = /* @__PURE__ */ discard(discardUnit);
   var throwError2 = /* @__PURE__ */ throwError(monadThrowAff);
-  var selectElement = function(query4) {
+  var selectElement = function(query3) {
     return bind10(liftEffect3(bindFlipped4(composeKleisliFlipped2(function() {
-      var $16 = querySelector(query4);
+      var $16 = querySelector(query3);
       return function($17) {
         return $16(toParentNode($17));
       };
@@ -9276,7 +9278,7 @@
   var unwrap4 = /* @__PURE__ */ unwrap();
   var when5 = /* @__PURE__ */ when(applicativeEffect);
   var not2 = /* @__PURE__ */ not(/* @__PURE__ */ heytingAlgebraFunction(/* @__PURE__ */ heytingAlgebraFunction(heytingAlgebraBoolean)));
-  var identity10 = /* @__PURE__ */ identity(categoryFn);
+  var identity9 = /* @__PURE__ */ identity(categoryFn);
   var bind17 = /* @__PURE__ */ bind(bindAff);
   var liftEffect6 = /* @__PURE__ */ liftEffect(monadEffectAff);
   var map19 = /* @__PURE__ */ map(functorEffect);
@@ -9418,7 +9420,7 @@
       };
       return {
         render,
-        renderChild: identity10,
+        renderChild: identity9,
         removeChild: removeChild3,
         dispose: removeChild3
       };

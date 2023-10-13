@@ -7,7 +7,7 @@ import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NEArray
 import Data.BoardStateTypes (BoardState)
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..), maybe, isJust)
 import Data.Player (Player, Square)
 import Data.Player as Player
 import Data.Position (Position, PositionsType)
@@ -18,7 +18,12 @@ import Data.Tuple (Tuple(..))
 --- Board State Helpers ---
 
 showBoardState :: BoardState -> String
-showBoardState { history, nextTurn } = "Board state for moves: " <> show (Array.length history :: Int) <> " and player: " <> show nextTurn
+showBoardState { history, nextTurn, reset } 
+  = "Board state for moves: " 
+  <> show (Array.length history :: Int)
+  <> ", for reset: "
+  <> show (maybe 0 Array.length reset :: Int) 
+  <> " and player: " <> show nextTurn
 
 toBoard
   :: NonEmptyArray Position
@@ -52,6 +57,5 @@ countEqual p (Tuple _ Nothing) = Tuple 1 $ Just p
 isMoveValid :: Position -> BoardState -> Boolean
 isMoveValid pos state = Array.null board
   where
-  --      hasOtherMove = Array.elem (Player.next state.nextTurn) board 
   board :: Array _
   board = Array.filter (\f -> isJust $ f pos) state.history

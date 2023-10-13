@@ -13,6 +13,7 @@ to generate this file without the comments in this block.
 { name = "tic-tic-toe"
 , dependencies =
   [ "aff"
+  , "ansi"
   , "arrays"
   , "console"
   , "effect"
@@ -20,11 +21,12 @@ to generate this file without the comments in this block.
   , "halogen"
   , "halogen-hooks"
   , "maybe"
+  , "partial"
   , "prelude"
+  , "refs"
   , "spec"
   , "tuples"
   , "web-html"
-  , "partial"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
