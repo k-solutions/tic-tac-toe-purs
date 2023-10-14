@@ -18,21 +18,38 @@ import Data.Tuple (Tuple(..))
 --- Board State Helpers ---
 
 showBoardState :: BoardState -> String
-showBoardState { history, nextTurn, reset } 
-  = "Board state for moves: " 
+showBoardState { history, nextTurn, reset } = "Board state for moves: "
   <> show (Array.length history :: Int)
   <> ", for reset: "
-  <> show (maybe 0 Array.length reset :: Int) 
-  <> " and player: " <> show nextTurn
+  <> show (maybe 0 Array.length reset :: Int)
+  <> " and player: "
+  <> show nextTurn
+
+fullBoardCheck
+  :: Array (Position -> Maybe Player)
+  -> Array Position
+fullBoardCheck stateFns = toBoardPos gens stateFns
+  where
+  gens :: Array Position
+  gens = Array.fold $ NEArray.mapMaybe (\p -> NEArray.toArray <$> Position.generate Position.Row p) Position.positionsArray
+
+toBoardPos
+  :: Array Position
+  -> Array (Position -> Maybe Player)
+  -> Array Position
+toBoardPos pos stateFns = Array.mapMaybe go pos
+  where
+  go :: Position -> Maybe Position
+  go p = Array.head $ Array.mapMaybe (\f -> const p <$> f p) stateFns
 
 toBoard
   :: NonEmptyArray Position
-  -> BoardState
+  -> Array (Position -> Maybe Player) -- BoardState
   -> Array Player
-toBoard pos state = mapMaybe go $ NEArray.toArray pos
+toBoard pos stateFns = mapMaybe go $ NEArray.toArray pos
   where
   go :: Position -> Maybe Player
-  go p = Array.head $ Array.mapMaybe (\f -> f p) state.history
+  go p = Array.head $ Array.mapMaybe (\f -> f p) stateFns
 
 hasWinPositions
   :: PositionsType
@@ -41,7 +58,7 @@ hasWinPositions
   -> Square
 hasWinPositions posType state i = do
   r <- Position.generate posType i
-  let cRes = Array.foldr countEqual (Tuple 0 Nothing) $ toBoard r state
+  let cRes = Array.foldr countEqual (Tuple 0 Nothing) $ toBoard r state.history
 
   case cRes of
     Tuple c (Just p) ->
@@ -54,8 +71,11 @@ countEqual p (Tuple c (Just p'))
   | otherwise = Tuple 1 $ Just p
 countEqual p (Tuple _ Nothing) = Tuple 1 $ Just p
 
-isMoveValid :: Position -> BoardState -> Boolean
+isMoveValid 
+  :: Position 
+  -> Array (Position -> Maybe Player) 
+  -> Boolean
 isMoveValid pos state = Array.null board
   where
   board :: Array _
-  board = Array.filter (\f -> isJust $ f pos) state.history
+  board = Array.filter (\f -> isJust $ f pos) state

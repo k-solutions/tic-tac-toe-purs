@@ -32,7 +32,7 @@ spec = describe "BoardState module tests" do
       result = do
         state <- mbBoardState
         BoardState.reset 6 state
-    mbShowState result `shouldEqual` "Board state for moves: 0, for reset: 6 and player: X" 
+    mbShowState result `shouldEqual` "Board state for moves: 0, for reset: 6 and player: X"
 
   it "Board State reset with bigger index than current state should be Nothing" do
     let

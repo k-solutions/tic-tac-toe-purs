@@ -9,6 +9,7 @@ import Data.Array.NonEmpty as NEArray
 import Data.BoardState (BoardState, Message(..))
 import Data.BoardState as BoardState
 import Data.Maybe (Maybe(..), maybe, isJust)
+import Data.Foldable (for_)
 import Data.Player (Player, Square)
 import Data.Position (Position)
 import Data.Position as Position
@@ -22,7 +23,7 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.Hooks (useTickEffect)
 import Halogen.Hooks as Hooks
-import Helpers (showBoardState)
+import Helpers (fullBoardCheck, showBoardState)
 import Type.Proxy (Proxy(..))
 import Web.HTML.Common (ClassName(..))
 
@@ -34,16 +35,12 @@ data SquareQuery a = Tell (Maybe Player) a
 
 -- | TODO: set game state a parameter and use them to get required data
 mkSquareComponent
-  :: forall m
+  :: forall i m
    . MonadEffect m
   => Position
-  -> H.Component SquareQuery Square Message m
-mkSquareComponent pos = Hooks.component \rec initSq -> Hooks.do
-  cellState /\ cellStateIdx <- Hooks.useState initSq
-
-  Hooks.captures {} useTickEffect do
-    log $ "Sqare was initied with: " <> show initSq
-    pure Nothing
+  -> H.Component SquareQuery i Message m
+mkSquareComponent pos = Hooks.component \rec _ -> Hooks.do
+  cellState /\ cellStateIdx <- Hooks.useState Nothing
 
   Hooks.useQuery rec.queryToken case _ of
     Tell p a -> do -- | We expect update from parent via Tel      
@@ -71,24 +68,27 @@ mkBoardComponent
   => Ref.Ref BoardState
   -> H.Component q BoardState Message m
 mkBoardComponent boardRef = Hooks.component $ \rec initState -> Hooks.do
-  brdState /\ brdIdx <- Hooks.useState initState
   Hooks.captures {} Hooks.useTickEffect do
     bSt <- liftEffect $ Ref.read boardRef
-    Hooks.put brdIdx bSt
-    log $ "Test me: " <> showBoardState bSt
-    pure Nothing
+    case bSt.reset of
+      Nothing -> pure Nothing
+      Just resFns -> do
+        let resetPos = fullBoardCheck resFns
+        for_ resetPos \pos -> do
+          Hooks.tell rec.slotToken _square pos $ Tell Nothing
+        log $ "Test me: " <> showBoardState bSt
+        pure Nothing
 
   let
-    mkSquareSlot stInit row colIdx = do
+    mkSquareSlot row colIdx = do
       pos <- Position.mkPosition row (colIdx :: Int)
-      pure $ HH.slot _square pos (mkSquareComponent pos) (stInit pos) handleCell
+      pure $ HH.slot _square pos (mkSquareComponent pos) unit handleCell
 
     mkRow idx = do
-      let stInit p = Array.head $ Array.mapMaybe (\f -> f p) brdState.history
       HH.div
         [ HP.class_ $ ClassName "boardRow"
         ]
-        $ NEArray.mapMaybe (mkSquareSlot stInit idx) Position.positionsArray
+        $ NEArray.mapMaybe (mkSquareSlot idx) Position.positionsArray
 
     handleCell (IsClicked pos) = do
       st <- liftEffect $ Ref.read boardRef

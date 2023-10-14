@@ -72,16 +72,19 @@ next
   -> BoardState
   -> Maybe BoardState
 next pos move s
-  | pos `isMoveValid` s = Just $ s { history = move Array.: s.history, nextTurn = Player.next s.nextTurn }
+  | pos `isMoveValid` s.history = Just $ s { history = move Array.: s.history
+                                           , nextTurn = Player.next s.nextTurn
+                                           , reset = Nothing 
+                                           }
   | otherwise = Nothing
 
 reset :: Int -> BoardState -> Maybe BoardState
 reset idx state
   | Array.length state.history >= idx = do
       let
-        diff = Array.length state.history - idx  
+        diff = Array.length state.history - idx
         r = Player.rewind idx state.nextTurn
-        { after: oldArr, before: newArr } = Array.splitAt diff state.history
+        { after: oldArr, before: newArr } = Array.splitAt diff $ Array.reverse state.history
         newState = state { history = newArr, nextTurn = r, reset = Just oldArr }
       pure newState
   | otherwise = Nothing
