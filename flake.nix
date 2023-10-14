@@ -13,7 +13,7 @@
   };
 
   outputs = { self, nixpkgs, easy-ps, flake-utils, ... }: let
-    name = "halogen-hooks";
+    name = "tic-tac-toe";
     supportedSystems = ["aarch64-darwin" "x86_64-darwin" "x86_64-linux"];
   in
     flake-utils.lib.eachSystem supportedSystems (
@@ -36,6 +36,7 @@
               pursPkgs.purs
               pursPkgs.spago
               pursPkgs.purs-tidy
+              pursPkgs.purs-backend-es
             ];
           };
         };
